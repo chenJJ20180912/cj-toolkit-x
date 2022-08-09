@@ -1,0 +1,6 @@
+src/*
+.idea/*
+node_modules/*
+tsconfig.json
+gulpfile.js
+publish.bat

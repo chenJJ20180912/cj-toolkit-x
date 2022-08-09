@@ -1,0 +1,37 @@
+{
+  "name": "cj-toolkit-x",
+  "version": "0.0.3",
+  "description": "a general javascript toolkit!",
+  "private": false,
+  "main": "dist/index.min.js",
+  "type": "commonjs",
+  "typings": "dist/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "files": [
+    "dist/*.js",
+    "dist/*.d.ts"
+  ],
+  "devDependencies": {
+    "gulp": "^4.0.2",
+    "gulp-clean": "^0.4.0",
+    "gulp-concat": "^2.6.1",
+    "gulp-rename": "^2.0.0",
+    "gulp-uglify-es": "^2.0.0",
+    "rollup": "^2.0.6",
+    "rollup-plugin-typescript2": "^0.26.0",
+    "typescript": "^3.8.3"
+  },
+  "author": "sssdal19995",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chenJJ20180912/cj-toolkit-x.git"
+  },
+  "keywords": [],
+  "bugs": {
+    "url": "https://github.com/chenJJ20180912/cj-toolkit-x/issues"
+  },
+  "homepage": "https://github.com/chenJJ20180912/cj-toolkit-x#readme"
+}

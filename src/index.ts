@@ -2,14 +2,15 @@ import {AppConfig, AppStore, CacheConfig} from "./manager";
 import {UnsetDataContract} from "./data/Contract";
 import {GeneralDataCopier} from "./data/Copier";
 import {LocalStorageCacheManager, MemoryStorageCacheManager, SessionStorageCacheManager} from "./cache";
-import objectUtils from "./utils/ObjectUtils";
+import objectUtils  from "./utils/ObjectUtils";
 import arrayUtils from "./utils/ArrayUtils";
 import dateUtils from "./utils/DateUtils";
 import {CacheManager} from "./typings";
 // 构建一个appStore对象
 export const appStore = new AppStore();
+
 // 安装一些工具类
-appStore.install("objectUtils", objectUtils);
+appStore.install("objectUtils",objectUtils);
 appStore.install("arrayUtils", arrayUtils);
 appStore.install("dateUtils", dateUtils);
 // 数据编解码插件

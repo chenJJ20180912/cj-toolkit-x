@@ -92,33 +92,61 @@ export declare interface StorageProvider {
 export declare interface CacheManager {
     /**
      * 初始化缓存区域
-     * @param region 缓存区域
+     * @param reginName 缓存区域
      * @param val 初始值
      */
-    initRegion(region: string, val?: any): void;
+    initRegion(reginName: string, val?: any): void;
 
     /**
      * 重置缓存区域
-     * @param region
+     * @param reginName
      */
-    resetRegion(region: string): void;
+    resetRegion(reginName: string): void;
 
+    /**
+     * 开关过期检测定时器
+     * @param ttlEnable
+     */
     setTtlEnabled(ttlEnable: boolean): void;
 
+    /**
+     * 设置过期检测定时器的检测周期
+     * @param ttlInterval
+     */
     setTtlInterval(ttlInterval: number): void;
 
+    /**
+     * 设置缓存值
+     * @param reginName 区域名称
+     * @param key 缓存的键名
+     * @param value 缓存的值
+     */
+    setValue(reginName: string, key: string, value: any): void;
 
-    setValue(region: string, key: string, value: any): void;
+    /**
+     * 获取缓存的值
+     * @param reginName 缓存区域名称
+     * @param key 缓存的键名
+     * @param defaultVal 找不到的时候赋予的默认值
+     */
+    getValue(reginName: string, key: string,defaultVal?:any): any;
 
-    getValue(region: string, key: string): any;
-
-    setRegionData(region: string, val: any): void;
-
-    getRegionData(region: string): any;
+    /**
+     * 设置缓存区域的值
+     * @param reginName  缓存区域名称
+     * @param val 缓存区域的值
+     */
+    setRegionData(reginName: string, val: any): void;
+    /**
+     * 设置缓存区域的值
+     * @param reginName  缓存区域名称
+     * @param defaultVal 找不到的时候赋予的默认值
+     */
+    getRegionData(reginName: string,defaultVal?:any): any;
 
     /**
      * 设置区域的ttl
-     * @param reginName
+     * @param reginName     缓存区域名称
      * @param ttl
      */
     ttl(reginName: string, ttl: number): void;

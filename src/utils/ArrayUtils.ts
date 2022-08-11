@@ -139,7 +139,7 @@ export class ArrayUtils {
 
     /**
      * 通过keys 获取Labels
-     *      * @param data 数据集合
+     * @param data 数据集合
      * @param keys 关键字
      * @param labelKey 显示的label属性名
      * @param valueKey 值的属性名

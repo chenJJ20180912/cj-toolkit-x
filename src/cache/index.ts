@@ -3,6 +3,9 @@ import Asserts from "../utils/Asserts";
 import {AppPlugin, AppPluginLife, CacheManager, DataContract, DataCopier, StorageProvider, Timer} from "../typings";
 import {GeneralTimer} from "../timer";
 
+/**
+ * 缓存管理器的属性工厂
+ */
 export declare interface CacheManagerPropertyFactory {
 
     newCacheRegion(cache: AbstractCacheManager, key: string, val?: any): CacheRegion;
@@ -10,6 +13,9 @@ export declare interface CacheManagerPropertyFactory {
     newTimer(): Timer;
 }
 
+/**
+ * 缓存管理器的属性工厂默认实现
+ */
 class CacheManagerPropertyFactoryImpl implements CacheManagerPropertyFactory {
     newCacheRegion(cache: AbstractCacheManager, key: string, val?: any): CacheRegion {
         return new CacheRegion(cache, key, val);
@@ -84,68 +90,73 @@ export abstract class AbstractCacheManager implements CacheManager, AppPluginLif
 
     /**
      * 初始化缓存区域
-     * @param region 缓存区域
+     * @param reginName 缓存区域
      * @param val 初始值
      * @param ttl 过期时间
      */
-    initRegion(region: string, val?: any, ttl: number = -1) {
-        Asserts.isNull(region, "缓存区域不可为空!");
-        this._reginData[region] = this.cacheManagerPropertyFactory.newCacheRegion(this, region, val);
-        this.ttl(region, ttl);
-        this.onChange(region);
+    initRegion(reginName: string, val?: any, ttl: number = -1) {
+        Asserts.isNull(reginName, "缓存区域不可为空!");
+        this._reginData[reginName] = this.cacheManagerPropertyFactory.newCacheRegion(this, reginName, val);
+        this.ttl(reginName, ttl);
+        this.onChange(reginName);
     }
 
     /**
      * 重置缓存区域
-     * @param region
+     * @param reginName
      */
-    resetRegion(region: string) {
+    resetRegion(reginName: string) {
         // 清除掉区域内的所有数据
-        this.getRegion(region).clearValue();
-        this.onChange(region);
+        this.getRegion(reginName).clearValue();
+        this.onChange(reginName);
     }
 
     /**
      * 获取缓存区域
-     * @param region
+     * @param reginName 缓存区域
+     * @param defaultVal 默认值
      * @private
      */
-    private getRegion(region: string): CacheRegion {
-        Asserts.isNull(region, "缓存区域不可为空!");
-        let cacheRegion = this._reginData[region];
+    protected getRegion(reginName: string, defaultVal?: any): CacheRegion {
+        Asserts.isNull(reginName, "缓存区域不可为空!");
+        let cacheRegion = this._reginData[reginName];
         if (!cacheRegion) {
-            cacheRegion = this._reginData[region] = this.cacheManagerPropertyFactory.newCacheRegion(this, region);
+            cacheRegion = this._reginData[reginName] = this.cacheManagerPropertyFactory.newCacheRegion(this, reginName, defaultVal);
         }
         return cacheRegion;
     }
 
-    setValue(region: string, key: string, value: any) {
-        const cacheRegion = this.getRegion(region);
+    setValue(reginName: string, key: string, value: any) {
+        const cacheRegion = this.getRegion(reginName);
         cacheRegion.setValue(key, value);
-        this.onChange(region);
+        this.onChange(reginName);
     }
 
-    getValue(region: string, key: string) {
-        const cacheRegion = this.getRegion(region);
-        const val = cacheRegion.getValue(key);
-        if (val !== undefined) {
-            return this.deepClone(val);
+    getValue(reginName: string, key: string, defaultVal?: any) {
+        const cacheRegion = this.getRegion(reginName);
+        let val = cacheRegion.getValue(key);
+        if (val === undefined && defaultVal !== undefined) {
+            val = defaultVal;
+            cacheRegion.setValue(key, defaultVal);
         }
+        return this.deepClone(val);
     }
 
-    setRegionData(region: string, val: any, ttl: number = -1) {
-        const cacheRegion = this.getRegion(region);
+    setRegionData(reginName: string, val: any, ttl: number = -1) {
+        const cacheRegion = this.getRegion(reginName);
         cacheRegion.setRegionData(val);
-        this.ttl(region, -1);
-        this.onChange(region);
+        this.ttl(reginName, -1);
+        this.onChange(reginName);
     }
 
-    getRegionData(region: string) {
-        const cacheRegion = this.getRegion(region);
-        const val = cacheRegion.getRegionData();
-        if (val !== undefined) {
-            return this.deepClone(val);
+    getRegionData(reginName: string, defaultVal?: any) {
+        const cacheRegion = this.getRegion(reginName);
+        let val = cacheRegion.getRegionData();
+        if (val === undefined && defaultVal !== undefined) {
+            val = defaultVal;
+            cacheRegion.setRegionData(defaultVal);
         }
+        return this.deepClone(val);
     }
 
     /**
@@ -153,7 +164,7 @@ export abstract class AbstractCacheManager implements CacheManager, AppPluginLif
      * @param val
      */
     deepClone(val: any) {
-        if (this._app) {
+        if (this._app && val !== undefined) {
             return (this._app.getPlugin("dataCopier") as DataCopier).deepClone(val);
         }
         return val;
@@ -176,15 +187,15 @@ export abstract class AbstractCacheManager implements CacheManager, AppPluginLif
 
     /**
      * 当前region 发生改变
-     * @param region
+     * @param reginName
      */
-    onChange(region: string) {
+    protected onChange(reginName: string) {
         if (!!this._queue.size) {
             setTimeout(() => {
                 this.sync();
             }, 0);
         }
-        this._queue.add(region);
+        this._queue.add(reginName);
     }
 
     /**
@@ -212,6 +223,7 @@ export abstract class AbstractCacheManager implements CacheManager, AppPluginLif
     ttl(reginName: string, ttl: number) {
         this.getRegion(reginName).setTtl(ttl);
     }
+
 }
 
 export class CacheRegion {
@@ -244,7 +256,7 @@ export class CacheRegion {
         this._regionName = key;
         if (val === undefined) {
             // 获取到当前存储的json
-            let valJson:string = this._cacheManager.storageProvider.getItem(this._regionName);
+            let valJson: string = this._cacheManager.storageProvider.getItem(this._regionName);
             if (valJson) {
                 valJson = this._cacheManager.decodeData(valJson);
             } else {
@@ -326,8 +338,9 @@ export class CacheRegion {
     setValue(key: string, val: any) {
         if (val === undefined) {
             delete this._data[key];
+        } else {
+            this._data[key] = this._cacheManager.deepClone(val);
         }
-        this._data[key] = this._cacheManager.deepClone(val);
         this._empty = false;
     }
 

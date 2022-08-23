@@ -360,7 +360,9 @@ export class CacheRegion {
      * 同步内存与存储对象
      */
     sync() {
-        this._cacheManager.storageProvider.setItem(this._regionName, this._cacheManager.encodeData(JSON.stringify(this._data)));
+        // json 序列化的时候对date 进行特殊处理一下
+        const saveData = this._cacheManager.deepClone(this._data);
+        this._cacheManager.storageProvider.setItem(this._regionName, this._cacheManager.encodeData(JSON.stringify(saveData)));
     }
 
     /**

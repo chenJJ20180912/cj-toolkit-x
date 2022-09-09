@@ -1,6 +1,6 @@
-export class ObjectUtils{
+export class ObjectUtils {
 
-    private readonly typeMapping:{[key:string]:string} = {
+    private readonly typeMapping: { [key: string]: string } = {
         "[object Boolean]": "boolean",
         "[object Number]": "number",
         "[object String]": "string",
@@ -10,29 +10,60 @@ export class ObjectUtils{
         "[object RegExp]": "regExp",
         "[object Undefined]": "undefined",
         "[object Null]": "null",
-        "[object Object]": "object"
+        "[object Object]": "object",
+        "[object Promise]": "Promise"
     };
 
-    isObject(val: any):boolean{
-        return this.getObjType(val) === 'object'
+
+    /**
+     * 对象是否为promise
+     * @param val
+     */
+    isPromise(val: any): boolean {
+        return val && typeof val === "object" && val.then && typeof val.then === "function";
     }
+
+    /**
+     * 对象是否为数组
+     * @param val
+     */
+    isArray(val: any): boolean {
+        return Array.isArray(val);
+    }
+
+    /**
+     * 是否为对象
+     * @param val
+     */
+    isObject(val: any): boolean {
+        return this.getObjType(val) === "object";
+    }
+
     addObjType(obj: any, typeName: string) {
         let toString = Object.prototype.toString;
         this.typeMapping[toString.call(obj)] = typeName;
     }
 
-    getObjType(obj: any):string {
+    getObjType(obj: any): string {
         let toString = Object.prototype.toString;
         if (obj instanceof Element) {
             return "element";
         }
-        return this.typeMapping[toString.call(obj)];
+        const typeString = toString.call(obj);
+        const type = this.typeMapping[typeString];
+        if (type) {
+            return type;
+        }
+        if (typeString.startsWith("[") && typeString.endsWith("]")) {
+            return typeString.replace("[object ", "").replace("]", "");
+        }
+        return typeString;
     }
 
-    deepClone(data: any):any {
+    deepClone(data: any): any {
         let type = this.getObjType(data);
         if (Array.isArray(data)) {
-            let obj:any[] = []
+            let obj: any[] = [];
             for (let i = 0, len = data.length; i < len; i++) {
                 data[i] = (() => {
                     if (data[i] === 0) {
@@ -45,16 +76,16 @@ export class ObjectUtils{
                 }
                 obj.push(this.deepClone(data[i]));
             }
-            return  obj;
+            return obj;
         } else if (type === "object") {
-            let obj:{[key:string]:string} = {};
+            let obj: { [key: string]: string } = {};
             for (let key in data) {
                 if (data) {
                     delete data.$parent;
                 }
                 obj[key] = this.deepClone(data[key]);
             }
-            return  obj
+            return obj;
         }
         return data;
     }

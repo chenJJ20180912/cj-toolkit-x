@@ -144,11 +144,30 @@
                 "[object RegExp]": "regExp",
                 "[object Undefined]": "undefined",
                 "[object Null]": "null",
-                "[object Object]": "object"
+                "[object Object]": "object",
+                "[object Promise]": "Promise"
             };
         }
+        /**
+         * 对象是否为promise
+         * @param val
+         */
+        isPromise(val) {
+            return val && typeof val === "object" && val.then && typeof val.then === "function";
+        }
+        /**
+         * 对象是否为数组
+         * @param val
+         */
+        isArray(val) {
+            return Array.isArray(val);
+        }
+        /**
+         * 是否为对象
+         * @param val
+         */
         isObject(val) {
-            return this.getObjType(val) === 'object';
+            return this.getObjType(val) === "object";
         }
         addObjType(obj, typeName) {
             let toString = Object.prototype.toString;
@@ -159,7 +178,15 @@
             if (obj instanceof Element) {
                 return "element";
             }
-            return this.typeMapping[toString.call(obj)];
+            const typeString = toString.call(obj);
+            const type = this.typeMapping[typeString];
+            if (type) {
+                return type;
+            }
+            if (typeString.startsWith("[") && typeString.endsWith("]")) {
+                return typeString.replace("[object ", "").replace("]", "");
+            }
+            return typeString;
         }
         deepClone(data) {
             let type = this.getObjType(data);
@@ -1201,7 +1228,7 @@
     Date.prototype.toJSON = function () {
         // 从插件中获取到
         const dateUtils = appStore.getPlugin("dateUtils");
-        return dateUtils.dateToString(this, "yyyy-MM-dd hh:mm:ss"); // util.formatDate是自定义的个时间格式化函数
+        return dateUtils.dateToString(this, "yyyy-MM-dd HH:mm:ss"); // util.formatDate是自定义的个时间格式化函数
     };
     /**
      * 安装器 里面实现配置信息的解析

@@ -52,7 +52,7 @@ export declare interface AppRunHook {
 Date.prototype.toJSON = function () {
     // 从插件中获取到
     const dateUtils = appStore.getPlugin("dateUtils") as DateUtils;
-    return dateUtils.dateToString(this, dateUtils.date_formatter_long); // util.formatDate是自定义的个时间格式化函数
+    return dateUtils.dateToString(this,  "yyyy-MM-dd HH:mm:ss"); // util.formatDate是自定义的个时间格式化函数
 };
 /**
  * 安装器 里面实现配置信息的解析

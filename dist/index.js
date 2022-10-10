@@ -690,6 +690,30 @@
             return newArr;
         }
         /**
+         * 将树转换成为数组
+         * @param tree 树对象
+         * @param idKey  对象的唯一主键
+         * @param parentKey 父节点的主键
+         * @param childKey 子数据在父对象中的属性名
+         * @param removerRelation 移除关联字段
+         */
+        treeToArray(tree, idKey = "id", parentKey = "parentId", childKey = "children", removerRelation = false) {
+            const data = [];
+            const _treeToArray = (node) => {
+                data.push(node);
+                const children = node[childKey] || [];
+                children.forEach(child => {
+                    child[parentKey] = node[idKey];
+                    _treeToArray(child);
+                });
+                if (removerRelation) {
+                    delete node[childKey];
+                }
+            };
+            _treeToArray(tree);
+            return data;
+        }
+        /**
          * 将一个数组转换成为一棵树
          * @param data  源数据数组
          * @param idKey  对象的唯一主键

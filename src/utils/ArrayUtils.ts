@@ -68,13 +68,13 @@ export class ArrayUtils {
      * @param idKey  对象的唯一主键
      * @param parentKey 父节点的主键
      * @param childKey 子数据在父对象中的属性名
-     * @param removerRelation 移除关联字段
+     * @param removeRelation 移除关联字段
      */
     treeToArray<T extends Record<string, any>>(tree: T,
                                                idKey = "id",
                                                parentKey = "parentId",
                                                childKey = "children",
-                                               removerRelation = false): T[] {
+                                               removeRelation = false): T[] {
         const data: T[] = [];
         const _treeToArray = (node: T) => {
             data.push(node);
@@ -83,7 +83,7 @@ export class ArrayUtils {
                 child[parentKey] = node[idKey]
                 _treeToArray(child);
             });
-            if (removerRelation) {
+            if (removeRelation) {
                 delete node[childKey];
             }
         };

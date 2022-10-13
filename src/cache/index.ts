@@ -107,8 +107,7 @@ export abstract class AbstractCacheManager implements CacheManager, AppPluginLif
      */
     resetRegion(reginName: string) {
         // 清除掉区域内的所有数据
-        this.getRegion(reginName).clearValue();
-        this.onChange(reginName);
+        this.getRegion(reginName).clearValue(true);
     }
 
     /**
@@ -368,13 +367,16 @@ export class CacheRegion {
     /**
      * 清除数据
      */
-    clearValue() {
+    clearValue(focus:boolean = false) {
         this._empty = true;
         this.ttl = -1;
         // 移除对象上的值
         Object.keys(this._data).forEach(p => {
             delete this._data[p];
         });
+        if(focus){
+            this.sync()
+        }
     }
 
     /**

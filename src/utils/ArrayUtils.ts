@@ -70,12 +70,15 @@ export class ArrayUtils {
      * @param childKey 子数据在父对象中的属性名
      * @param removeRelation 移除关联字段
      */
-    treeToArray<T extends Record<string, any>>(tree: T,
+    treeToArray<T extends Record<string, any>>(tree: T | T[],
                                                idKey = "id",
                                                parentKey = "parentId",
                                                childKey = "children",
                                                removeRelation = false): T[] {
         const data: Array<any> = [];
+        if (!tree) {
+            return data;
+        }
         const _treeToArray = (node: T) => {
             data.push(node);
             const children = node[childKey] || [];
@@ -87,6 +90,14 @@ export class ArrayUtils {
                 delete node[childKey];
             }
         };
+        if (Array.isArray(tree)) {
+            // 森林
+            tree.forEach(node => {
+                _treeToArray(node);
+            });
+            return data;
+        }
+        // 单个树
         _treeToArray(tree);
         if (data?.length) {
             return data[0];

@@ -701,6 +701,9 @@
          */
         treeToArray(tree, idKey = "id", parentKey = "parentId", childKey = "children", removeRelation = false) {
             const data = [];
+            if (!tree) {
+                return data;
+            }
             const _treeToArray = (node) => {
                 data.push(node);
                 const children = node[childKey] || [];
@@ -712,6 +715,14 @@
                     delete node[childKey];
                 }
             };
+            if (Array.isArray(tree)) {
+                // 森林
+                tree.forEach(node => {
+                    _treeToArray(node);
+                });
+                return data;
+            }
+            // 单个树
             _treeToArray(tree);
             if (data === null || data === void 0 ? void 0 : data.length) {
                 return data[0];

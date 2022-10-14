@@ -75,12 +75,12 @@ export class ArrayUtils {
                                                parentKey = "parentId",
                                                childKey = "children",
                                                removeRelation = false): T[] {
-        const data: T[] = [];
+        const data: Array<any> = [];
         const _treeToArray = (node: T) => {
             data.push(node);
             const children = node[childKey] || [];
             children.forEach(child => {
-                child[parentKey] = node[idKey]
+                child[parentKey] = node[idKey];
                 _treeToArray(child);
             });
             if (removeRelation) {
@@ -88,7 +88,10 @@ export class ArrayUtils {
             }
         };
         _treeToArray(tree);
-        return data;
+        if (data?.length) {
+            return data[0];
+        }
+        return [];
     }
 
     /**

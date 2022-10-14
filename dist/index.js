@@ -347,8 +347,7 @@
          */
         resetRegion(reginName) {
             // 清除掉区域内的所有数据
-            this.getRegion(reginName).clearValue();
-            this.onChange(reginName);
+            this.getRegion(reginName).clearValue(true);
         }
         /**
          * 获取缓存区域
@@ -578,13 +577,16 @@
         /**
          * 清除数据
          */
-        clearValue() {
+        clearValue(focus = false) {
             this._empty = true;
             this.ttl = -1;
             // 移除对象上的值
             Object.keys(this._data).forEach(p => {
                 delete this._data[p];
             });
+            if (focus) {
+                this.sync();
+            }
         }
         /**
          * 是否是一个简单对象的缓存
@@ -695,9 +697,9 @@
          * @param idKey  对象的唯一主键
          * @param parentKey 父节点的主键
          * @param childKey 子数据在父对象中的属性名
-         * @param removerRelation 移除关联字段
+         * @param removeRelation 移除关联字段
          */
-        treeToArray(tree, idKey = "id", parentKey = "parentId", childKey = "children", removerRelation = false) {
+        treeToArray(tree, idKey = "id", parentKey = "parentId", childKey = "children", removeRelation = false) {
             const data = [];
             const _treeToArray = (node) => {
                 data.push(node);
@@ -706,12 +708,15 @@
                     child[parentKey] = node[idKey];
                     _treeToArray(child);
                 });
-                if (removerRelation) {
+                if (removeRelation) {
                     delete node[childKey];
                 }
             };
             _treeToArray(tree);
-            return data;
+            if (data === null || data === void 0 ? void 0 : data.length) {
+                return data[0];
+            }
+            return [];
         }
         /**
          * 将一个数组转换成为一棵树

@@ -24,9 +24,9 @@ export declare class ArrayUtils {
      * @param idKey  对象的唯一主键
      * @param parentKey 父节点的主键
      * @param childKey 子数据在父对象中的属性名
-     * @param removerRelation 移除关联字段
+     * @param removeRelation 移除关联字段
      */
-    treeToArray<T extends Record<string, any>>(tree: T, idKey?: string, parentKey?: string, childKey?: string, removerRelation?: boolean): T[];
+    treeToArray<T extends Record<string, any>>(tree: T, idKey?: string, parentKey?: string, childKey?: string, removeRelation?: boolean): T[];
     /**
      * 将一个数组转换成为一棵树
      * @param data  源数据数组

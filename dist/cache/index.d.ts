@@ -129,7 +129,7 @@ export declare class CacheRegion {
     /**
      * 清除数据
      */
-    clearValue(): void;
+    clearValue(focus?: boolean): void;
     /**
      * 是否是一个简单对象的缓存
      */

@@ -2,6 +2,7 @@ import {AppStore} from "../manager";
 import Asserts from "../utils/Asserts";
 import {AppPlugin, AppPluginLife, CacheManager, DataContract, DataCopier, StorageProvider, Timer} from "../typings";
 import {GeneralTimer} from "../timer";
+import objectUtils from "../utils/ObjectUtils";
 
 /**
  * 缓存管理器的属性工厂
@@ -367,15 +368,16 @@ export class CacheRegion {
     /**
      * 清除数据
      */
-    clearValue(focus:boolean = false) {
+    clearValue(focus: boolean = false) {
         this._empty = true;
         this.ttl = -1;
-        // 移除对象上的值
-        Object.keys(this._data).forEach(p => {
-            delete this._data[p];
-        });
-        if(focus){
-            this.sync()
+        if (Array.isArray(this._data)) {
+            this._data = [];
+        } else {
+            this._data = {};
+        }
+        if (focus) {
+            this.sync();
         }
     }
 

@@ -2,7 +2,6 @@ import {AppStore} from "../manager";
 import Asserts from "../utils/Asserts";
 import {AppPlugin, AppPluginLife, CacheManager, DataContract, DataCopier, StorageProvider, Timer} from "../typings";
 import {GeneralTimer} from "../timer";
-import objectUtils from "../utils/ObjectUtils";
 
 /**
  * 缓存管理器的属性工厂
@@ -11,7 +10,7 @@ export declare interface CacheManagerPropertyFactory {
 
     newCacheRegion(cache: AbstractCacheManager, key: string, val?: any): CacheRegion;
 
-    newTimer(): Timer;
+    newTimer(_this: AbstractCacheManager): Timer;
 }
 
 /**
@@ -22,8 +21,20 @@ class CacheManagerPropertyFactoryImpl implements CacheManagerPropertyFactory {
         return new CacheRegion(cache, key, val);
     }
 
-    newTimer(): Timer {
-        return new GeneralTimer();
+    newTimer(_this: AbstractCacheManager): Timer {
+        const targetFun =
+            (that: AbstractCacheManager) => {
+                Object.keys(that._reginData).forEach(reginName => {
+                    const region = that.getRegion(reginName);
+                    // 缓存已经过期了
+                    if (region.isInvalid()) {
+                        // 重置缓存区域
+                        that.resetRegion(reginName);
+                    }
+                });
+            };
+        // 默认每15秒刷新一次缓存
+        return new GeneralTimer(15000, targetFun, _this);
     }
 
 }
@@ -49,13 +60,15 @@ export abstract class AbstractCacheManager implements CacheManager, AppPluginLif
      */
     private ttlTimer: Timer;
 
+    private ttlEnable: boolean = false;
+
     private cacheManagerPropertyFactory: CacheManagerPropertyFactory;
 
     constructor(storageProvider: StorageProvider,
                 cacheManagerPropertyFactory: CacheManagerPropertyFactory) {
         this.cacheManagerPropertyFactory = cacheManagerPropertyFactory;
         this.storageProvider = storageProvider;
-        this.ttlTimer = cacheManagerPropertyFactory.newTimer();
+        this.ttlTimer = cacheManagerPropertyFactory.newTimer(this);
     }
 
     install(app: AppStore) {
@@ -63,16 +76,10 @@ export abstract class AbstractCacheManager implements CacheManager, AppPluginLif
     }
 
     ready(app: AppStore) {
-        this.ttlTimer.start(() => {
-            Object.keys(this._reginData).forEach(reginName => {
-                const region = this.getRegion(reginName);
-                // 缓存已经过期了
-                if (region.isInvalid()) {
-                    // 重置缓存区域
-                    this.resetRegion(reginName);
-                }
-            });
-        });
+        if (this.ttlEnable) {
+            // 开启定时器
+            this.ttlTimer.start();
+        }
     }
 
     remove(app: AppStore): AppPlugin {
@@ -82,7 +89,7 @@ export abstract class AbstractCacheManager implements CacheManager, AppPluginLif
     }
 
     setTtlEnabled(ttlEnable: boolean) {
-        this.ttlTimer.setEnabled(ttlEnable);
+        this.ttlEnable = ttlEnable;
     }
 
     setTtlInterval(ttlInterval: number) {
@@ -99,6 +106,8 @@ export abstract class AbstractCacheManager implements CacheManager, AppPluginLif
         Asserts.isNull(reginName, "缓存区域不可为空!");
         this._reginData[reginName] = this.cacheManagerPropertyFactory.newCacheRegion(this, reginName, val);
         this.ttl(reginName, ttl);
+        // 第一次直接将数据从缓存写到存储上
+        this.sync(reginName)
         this.onChange(reginName);
     }
 
@@ -117,7 +126,7 @@ export abstract class AbstractCacheManager implements CacheManager, AppPluginLif
      * @param defaultVal 默认值
      * @private
      */
-    protected getRegion(reginName: string, defaultVal?: any): CacheRegion {
+    getRegion(reginName: string, defaultVal?: any): CacheRegion {
         Asserts.isNull(reginName, "缓存区域不可为空!");
         let cacheRegion = this._reginData[reginName];
         if (!cacheRegion) {
@@ -199,19 +208,49 @@ export abstract class AbstractCacheManager implements CacheManager, AppPluginLif
     }
 
     /**
-     * 持久化数据
+     * 立即持久化数据 从缓存对象到存储对象
      */
-    sync() {
+    sync(regionNames: Array<string> | string | undefined = undefined) {
         // 获取需要持久化的区域
         const taskQueue: string[] = [];
-        this._queue.forEach(regionName => {
-            taskQueue.push(regionName);
-        });
-        // 清空任务队列
-        this._queue.clear();
+        if (regionNames) {
+            if (Array.isArray(regionNames)) {
+                taskQueue.push(...regionNames);
+            } else {
+                taskQueue.push(regionNames);
+            }
+        } else {
+            this._queue.forEach(regionName => {
+                taskQueue.push(regionName);
+            });
+            // 清空任务队列
+            this._queue.clear();
+        }
         // 逐个执行持久化
         taskQueue.forEach(reginName => {
             this.getRegion(reginName).sync();
+        });
+    }
+
+    /**
+     * 立即刷新缓存 从存储到缓存对象
+     */
+    refresh(regionNames: Array<string> | string | undefined = undefined) {
+        // 获取需要刷新缓存的区域
+        const taskQueue: string[] = [];
+        if (regionNames) {
+            if (Array.isArray(regionNames)) {
+                taskQueue.push(...regionNames);
+            } else {
+                taskQueue.push(regionNames);
+            }
+        } else {
+            Object.keys(this._reginData).forEach(regionName => {
+                taskQueue.push(regionName);
+            });
+        }
+        taskQueue.forEach(regionName => {
+            this.getRegion(regionName).refresh();
         });
     }
 
@@ -363,6 +402,21 @@ export class CacheRegion {
         // json 序列化的时候对date 进行特殊处理一下
         const saveData = this._cacheManager.deepClone(this._data);
         this._cacheManager.storageProvider.setItem(this._regionName, this._cacheManager.encodeData(JSON.stringify(saveData)));
+    }
+
+    /**
+     * 从存储对象同步数据到内存
+     */
+    refresh() {
+        // 获取到当前存储的json
+        let valJson: string = this._cacheManager.storageProvider.getItem(this._regionName);
+        if (valJson) {
+            valJson = this._cacheManager.decodeData(valJson);
+        } else {
+            valJson = "{}";
+        }
+        // 将json 解析为对象
+        this._data = JSON.parse(valJson);
     }
 
     /**

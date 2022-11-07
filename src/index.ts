@@ -1,12 +1,16 @@
 import {AppConfig, AppStore, CacheConfig} from "./manager";
-import {UnsetDataContract} from "./data/Contract";
-import {GeneralDataCopier} from "./data/Copier";
-import {LocalStorageCacheManager, MemoryStorageCacheManager, SessionStorageCacheManager} from "./cache";
 import objectUtils from "./utils/ObjectUtils";
 import arrayUtils from "./utils/ArrayUtils";
 import dateUtils, {DateUtils} from "./utils/DateUtils";
 import {CacheManager} from "./typings";
 import mathUtils from "./utils/MathUtils";
+
+
+import {allConstructs} from "./export";
+// 暴露出去所有的组件
+export default allConstructs;
+
+
 // 构建一个appStore对象
 export const appStore = new AppStore();
 
@@ -15,9 +19,9 @@ appStore.install("objectUtils", objectUtils);
 appStore.install("arrayUtils", arrayUtils);
 appStore.install("dateUtils", dateUtils);
 // 数据编解码插件
-appStore.install("dataContract", new UnsetDataContract());
+appStore.install("dataContract", new allConstructs.UnsetDataContract());
 // 对象拷贝器
-appStore.install("dataCopier", new GeneralDataCopier());
+appStore.install("dataCopier", new allConstructs.GeneralDataCopier());
 // 数学工具类
 appStore.install("mathUtils", mathUtils);
 
@@ -52,7 +56,7 @@ export declare interface AppRunHook {
 Date.prototype.toJSON = function () {
     // 从插件中获取到
     const dateUtils = appStore.getPlugin("dateUtils") as DateUtils;
-    return dateUtils.dateToString(this,  "yyyy-MM-dd HH:mm:ss"); // util.formatDate是自定义的个时间格式化函数
+    return dateUtils.dateToString(this, "yyyy-MM-dd HH:mm:ss"); // util.formatDate是自定义的个时间格式化函数
 };
 /**
  * 安装器 里面实现配置信息的解析
@@ -80,13 +84,13 @@ const installCacheManager = (cacheConfig: CacheConfig) => {
     } else {
         switch (cacheConfig.type) {
             case "Memory":
-                cacheManager = new MemoryStorageCacheManager();
+                cacheManager = new allConstructs.MemoryStorageCacheManager();
                 break;
             case "Session":
-                cacheManager = new SessionStorageCacheManager();
+                cacheManager = new allConstructs.SessionStorageCacheManager();
                 break;
             default:
-                cacheManager = new LocalStorageCacheManager();
+                cacheManager = new allConstructs.LocalStorageCacheManager();
                 break;
         }
         appStore.install(pluginName, cacheManager);

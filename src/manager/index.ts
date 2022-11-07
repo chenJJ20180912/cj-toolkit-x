@@ -14,8 +14,8 @@ export class CacheConfig {
     pluginName: "cacheManager" | string = "cacheManager";
     // 过期检测
     ttlEnabled: boolean = true;
-    // 过期检测的时间间隔
-    ttlInterval: number = 1000;
+    // 过期检测的时间间隔 默认15秒检测一次
+    ttlInterval: number = 15000;
 
 }
 

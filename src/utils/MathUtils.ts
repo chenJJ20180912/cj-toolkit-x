@@ -1,4 +1,4 @@
-class MathUtils {
+export class MathUtils {
 
     private isEmpty(val) {//判断对象是否是NULL或者时undefined
         if (typeof (val) == "undefined") return true;

@@ -89,6 +89,35 @@ export class ObjectUtils {
         }
         return data;
     }
+
+    /**
+     * 判断对象为空
+     * @param obj
+     */
+    isEmpty(obj: any) {
+        if (obj === undefined) {
+            return true;
+        }
+        const type = this.getObjType(obj);
+        if (type === "string" && "" === obj) {
+            return true;
+        }
+        if (type === "array" && !obj.length) {
+            return true;
+        }
+        if (obj.isEmpty && obj.isEmpty()) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 判断对象为非空
+     * @param obj
+     */
+    isNotEmpty(obj:any){
+        return !this.isEmpty(obj)
+    }
 }
 
 

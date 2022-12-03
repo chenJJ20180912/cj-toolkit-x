@@ -6,17 +6,17 @@ import Asserts from "./Asserts";
 export class DateUtils {
     /**格式为yyyy-MM-dd HH:mm:ss*/
         // 年月日 时分秒
-    date_formatter_long = "yyyy-MM-dd HH:mm:ss";
+    static date_formatter_long = "yyyy-MM-dd HH:mm:ss";
     /**格式为yyyy-MM-dd*/
         // 年月日
-    date_formatter_short = "yyyy-MM-dd";
+    static date_formatter_short = "yyyy-MM-dd";
 
     /**
      * 获取时间
      * @param date
      * @returns {*}
      */
-    getDate(date: string | Date):Date {
+    getDate(date: string | Date): Date {
         if (date == null) date = new Date();
         if (typeof date === "string") {
             date = this.stringToDate(date);
@@ -39,7 +39,7 @@ export class DateUtils {
             fmt = "yyyy-MM-dd";
         }
         date = this.getDate(date);
-        const opt:{[key:string]:string} = {
+        const opt: { [key: string]: string } = {
             "y+": date.getFullYear().toString(), // 年
             "M+": (date.getMonth() + 1).toString(), // 月
             "d+": date.getDate().toString(), // 日
@@ -123,10 +123,7 @@ export class DateUtils {
      * @param num
      * @returns {Date}
      */
-    addDay(date: string | Date, num: number):Date|undefined  {
-        if (!date) {
-            return undefined;
-        }
+    addDay(date: string | Date, num: number): Date {
         date = this.getDate(date);
         let newDate = new Date(
             date.getFullYear(),
@@ -145,10 +142,7 @@ export class DateUtils {
      * @param date
      * @param num
      */
-    addMonth(date: string | Date, num: number):Date|undefined  {
-        if (!date) {
-            return undefined;
-        }
+    addMonth(date: string | Date, num: number): Date {
         date = this.getDate(date);
         let newDate = new Date(
             date.getFullYear(),
@@ -167,10 +161,7 @@ export class DateUtils {
      * @param date
      * @param num
      */
-    addYear(date: string | Date, num: number):Date|undefined {
-        if (!date) {
-            return undefined;
-        }
+    addYear(date: string | Date, num: number): Date {
         date = this.getDate(date);
         let newDate = new Date(
             date.getFullYear(),
@@ -190,7 +181,7 @@ export class DateUtils {
      * @param weeks
      * @returns {string}
      */
-    getWeekDate(date: Date | string, weeks = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]) :string{
+    getWeekDate(date: Date | string, weeks = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]): string {
         if (!date) {
             return "";
         }
@@ -204,7 +195,7 @@ export class DateUtils {
      * @param secondDate
      * @returns {string}
      */
-    subDay(firstDate: Date | string, secondDate: Date | string):number {
+    subDay(firstDate: Date | string, secondDate: Date | string): number {
         const begainDate = this.getDate(firstDate);
         const endingDate = this.getDate(secondDate);
         const diff = Math.abs(begainDate.getTime() - endingDate.getTime());
@@ -215,7 +206,7 @@ export class DateUtils {
      * 计算两个日期之间的月份差
      * date1，date2
      */
-    subMonth(date1: Date | string, date2: Date | string):number {
+    subMonth(date1: Date | string, date2: Date | string): number {
         date1 = this.dateToString(date1, "yyyy-MM-dd");
         date2 = this.dateToString(date2, "yyyy-MM-dd");
         //用-分成数组
@@ -233,7 +224,7 @@ export class DateUtils {
      * 计算两个日期之间的年份差
      * date1，date2
      */
-    subYear(date1: Date | string, date2: Date | string):number {
+    subYear(date1: Date | string, date2: Date | string): number {
         date1 = this.dateToString(date1, "yyyy-MM-dd");
         date2 = this.dateToString(date2, "yyyy-MM-dd");
         //用-分成数组
@@ -249,7 +240,7 @@ export class DateUtils {
     /**
      * 计算某一月份有多少天，如果用户不传date,则默认查找当前月份
      */
-    getDaysOfMonths(date:Date|string):number {
+    getDaysOfMonths(date: Date | string): number {
         let curDate;
         if (!date) {
             curDate = new Date();
@@ -272,12 +263,12 @@ export class DateUtils {
      * @param endDate 结束日期
      * @param returnDate 返回日期类型
      */
-    getDatesInRange(startDate:Date|string, endDate:Date|string, returnDate = true):Date[]|String[] {
-        const date_all:Date[]|String[] = [];
+    getDatesInRange(startDate: Date | string, endDate: Date | string, returnDate = true): Date[] | String[] {
+        const date_all: Date[] | String[] = [];
         let i = 0;
-        let startDateStr = this.dateToString(startDate, this.date_formatter_short);
+        let startDateStr = this.dateToString(startDate, DateUtils.date_formatter_short);
         // 复制一份开始日期
-        const endDateStr = this.dateToString(endDate, this.date_formatter_short);
+        const endDateStr = this.dateToString(endDate, DateUtils.date_formatter_short);
         let startDateClone = this.stringToDate(startDateStr);
         do {
             if (returnDate) {
@@ -286,11 +277,61 @@ export class DateUtils {
                 date_all[i] = startDateStr;
             }
             startDateClone.setDate(startDateClone.getDate() + 1);
-            startDateStr = this.dateToString(startDateClone, this.date_formatter_short);
+            startDateStr = this.dateToString(startDateClone, DateUtils.date_formatter_short);
             i++;
         } while (endDateStr.localeCompare(startDateStr) !== -1);
         return date_all;
     }
+
+    /**
+     * 格式化日期
+     * 将日期进行格式化
+     * @param date 日期对象
+     * @param format 单位  year 年 month 月 day 日 hour 小时 minute 分钟
+     */
+    trunc(date: Date | string, format: DateTruncUnit = "day") {
+        // 获取日期格式的日期
+        date = this.getDate(date);
+        let dateStr = "";
+        switch (format) {
+            case "year":
+                dateStr = this.dateToString(date, "yyyy") + "-01-01 00:00:00";
+                break;
+            case "month":
+                dateStr = this.dateToString(date, "yyyy-MM") + "-01 00:00:00";
+                break;
+            case "day":
+                dateStr = this.dateToString(date, "yyyy-MM-dd") + " 00:00:00";
+                break;
+            case "hour":
+                dateStr = this.dateToString(date, "yyyy-MM-dd HH") + " :00:00";
+                break;
+            case "minute":
+                dateStr = this.dateToString(date, "yyyy-MM-dd HH:mm") + ":00";
+                break;
+        }
+        return this.stringToDate(dateStr, DateUtils.date_formatter_long);
+    }
+
+    /**
+     * 获取本月第一天
+     * @param date
+     */
+    getFirstDayOfMonth(date: Date | string): Date {
+        // 获取日期格式的日期
+        return this.stringToDate(this.dateToString(date, "yyyy-MM") + "-01", DateUtils.date_formatter_short);
+    }
+
+    /**
+     * 获取本月最后一天
+     * @param date
+     */
+    getLastDayOfMonth(date: Date | string): Date {
+        date = this.getDate(date);
+        return this.addDay(this.addMonth(date, 1), -1);
+    }
 }
 
+// 格式化日期的单位
+declare type DateTruncUnit = "year" | "month" | "day" | "hour" | "minute"
 export default new DateUtils();

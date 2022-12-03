@@ -114,17 +114,19 @@ export class ArrayUtils {
      * @param idKey  对象的唯一主键
      * @param parentKey 父节点的主键
      * @param childKey 子数据在父对象中的属性名
-     * @param defaultParentIdId 为数据上parentId为空的数据设置默认的parentId
      */
     arrayToTree(data: any[] = [],
                 idKey = "id",
                 parentKey = "parentId",
-                childKey = "children",
-                defaultParentIdId = "_root") {
+                childKey = "children"
+    ) {
         // 根节点数组
         const parentIds = new Set<any>();
         const existParentIds = new Set();
         const dataMap: { [key: string]: any } = {};
+        // 收集没有parentId 的数据 直接认为是最外层
+        const noParentData: any[] = [];
+        const noParentDataIds: any[] = [];
         data.forEach(function (item: { [key: string]: any }) {
             const id = item[idKey];
             // 处理当前节点
@@ -132,7 +134,7 @@ export class ArrayUtils {
             item[childKey] = cur ? cur[childKey] : [];
             dataMap[id] = item;
             // 处理父亲节点
-            const parentId = item[parentKey] || defaultParentIdId;
+            const parentId = item[parentKey];
             if (parentId) {
                 if (!existParentIds.has(parentId)) {
                     // 收集父节点的id
@@ -148,18 +150,18 @@ export class ArrayUtils {
                 parentIds.delete(id);
                 existParentIds.add(id);
                 parent[childKey].push(item);
+            } else {
+                noParentDataIds.push(id);
+                noParentData.push(item);
             }
         });
         const root: any[] = [];
-        if (dataMap[defaultParentIdId]) {
-            (dataMap[defaultParentIdId].children || []).forEach(data => {
-                root.push(data);
-            });
-        } else {
-            parentIds.forEach(pid => {
+        parentIds.forEach(pid => {
+            if (noParentDataIds.indexOf(pid) === -1) {
                 root.push(dataMap[pid]);
-            });
-        }
+            }
+        });
+        root.push(...noParentData);
         return root;
     }
 
@@ -244,6 +246,20 @@ export class ArrayUtils {
             map[pkey] = (valueBuilder as ValueBuilder).buildValue(item);
         });
         return map;
+    }
+
+    /**
+     * 如果当前对象不是一个数组 那么将它包装为一个数组
+     * @param obj
+     */
+    wrappedToArray(obj: any): Array<any> {
+        if (obj === undefined) {
+            return [];
+        }
+        if (Array.isArray(obj)) {
+            return obj;
+        }
+        return [obj];
     }
 }
 

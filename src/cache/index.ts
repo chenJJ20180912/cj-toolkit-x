@@ -1,7 +1,17 @@
-import {AppStore} from "../manager";
+import {AppStore, CacheConfig} from "../manager";
 import Asserts from "../utils/Asserts";
-import {AppPlugin, AppPluginLife, CacheManager, DataContract, DataCopier, StorageProvider, Timer} from "../typings";
+import {
+    AppPlugin,
+    AppPluginLife,
+    CacheManager,
+    CacheManagerRegionBuilder,
+    DataContract,
+    DataCopier,
+    StorageProvider,
+    Timer
+} from "../typings";
 import {GeneralTimer} from "../timer";
+import {AutoWried} from "../annotations";
 
 /**
  * 缓存管理器的属性工厂
@@ -36,7 +46,26 @@ class CacheManagerPropertyFactoryImpl implements CacheManagerPropertyFactory {
         // 默认每15秒刷新一次缓存
         return new GeneralTimer(15000, targetFun, _this);
     }
+}
 
+export class GeneralCacheRegionBuilder implements CacheManagerRegionBuilder {
+
+    prefix: string;
+
+    @AutoWried("dataContract")
+    dataContract!: DataContract;
+
+
+    constructor(cacheConfig: CacheConfig) {
+        this.prefix = cacheConfig.prefix;
+    }
+
+    buildRegionName(regionName: string): string {
+        if (this.prefix) {
+            regionName = this.prefix + regionName;
+        }
+        return this.dataContract?.encode(regionName);
+    }
 }
 
 /**
@@ -50,8 +79,6 @@ export abstract class AbstractCacheManager implements CacheManager, AppPluginLif
     // 内部的数据存储对象
     readonly _reginData: { [key: string]: CacheRegion } = {};
 
-    _app: AppStore | undefined;
-
     // 同步数据的任务队列 存储的是需要修改的缓存的名称
     private _queue: Set<string> = new Set<string>();
     /**
@@ -64,6 +91,13 @@ export abstract class AbstractCacheManager implements CacheManager, AppPluginLif
 
     private cacheManagerPropertyFactory: CacheManagerPropertyFactory;
 
+    @AutoWried("dataCopier")
+    private dataCopier!: DataCopier;
+    @AutoWried("dataContract")
+    private dataContract!: DataContract;
+    @AutoWried("cacheRegionBuilder")
+    private regionBuilder!: CacheManagerRegionBuilder;
+
     constructor(storageProvider: StorageProvider,
                 cacheManagerPropertyFactory: CacheManagerPropertyFactory) {
         this.cacheManagerPropertyFactory = cacheManagerPropertyFactory;
@@ -72,7 +106,6 @@ export abstract class AbstractCacheManager implements CacheManager, AppPluginLif
     }
 
     install(app: AppStore) {
-        this._app = app;
     }
 
     ready(app: AppStore) {
@@ -103,11 +136,11 @@ export abstract class AbstractCacheManager implements CacheManager, AppPluginLif
      * @param ttl 过期时间
      */
     initRegion(reginName: string, val?: any, ttl: number = -1) {
-        Asserts.isNull(reginName, "缓存区域不可为空!");
-        this._reginData[reginName] = this.cacheManagerPropertyFactory.newCacheRegion(this, reginName, val);
+        const realReginName = this.buildRegionName(reginName);
+        this._reginData[realReginName] = this.cacheManagerPropertyFactory.newCacheRegion(this, realReginName, val);
         this.ttl(reginName, ttl);
         // 第一次直接将数据从缓存写到存储上
-        this.sync(reginName)
+        this.sync(reginName);
         this.onChange(reginName);
     }
 
@@ -127,12 +160,21 @@ export abstract class AbstractCacheManager implements CacheManager, AppPluginLif
      * @private
      */
     getRegion(reginName: string, defaultVal?: any): CacheRegion {
-        Asserts.isNull(reginName, "缓存区域不可为空!");
+        reginName = this.buildRegionName(reginName);
         let cacheRegion = this._reginData[reginName];
         if (!cacheRegion) {
             cacheRegion = this._reginData[reginName] = this.cacheManagerPropertyFactory.newCacheRegion(this, reginName, defaultVal);
         }
         return cacheRegion;
+    }
+
+    /**
+     * 构建真正的regionName
+     * @param reginName
+     */
+    buildRegionName(reginName: string) {
+        Asserts.isNull(reginName, "缓存区域不可为空!");
+        return this.regionBuilder?.buildRegionName(reginName) || reginName;
     }
 
     setValue(reginName: string, key: string, value: any) {
@@ -144,9 +186,13 @@ export abstract class AbstractCacheManager implements CacheManager, AppPluginLif
     getValue(reginName: string, key: string, defaultVal?: any) {
         const cacheRegion = this.getRegion(reginName);
         let val = cacheRegion.getValue(key);
-        if (val === undefined && defaultVal !== undefined) {
-            val = defaultVal;
-            cacheRegion.setValue(key, defaultVal);
+        if (val === undefined) {
+            if (defaultVal !== undefined) {
+                val = defaultVal;
+                cacheRegion.setValue(key, defaultVal);
+            } else {
+                return val;
+            }
         }
         return this.deepClone(val);
     }
@@ -161,9 +207,13 @@ export abstract class AbstractCacheManager implements CacheManager, AppPluginLif
     getRegionData(reginName: string, defaultVal?: any) {
         const cacheRegion = this.getRegion(reginName);
         let val = cacheRegion.getRegionData();
-        if (val === undefined && defaultVal !== undefined) {
-            val = defaultVal;
-            cacheRegion.setRegionData(defaultVal);
+        if (val === undefined) {
+            if (defaultVal !== undefined) {
+                val = defaultVal;
+                cacheRegion.setRegionData(defaultVal);
+            } else {
+                return val;
+            }
         }
         return this.deepClone(val);
     }
@@ -173,25 +223,16 @@ export abstract class AbstractCacheManager implements CacheManager, AppPluginLif
      * @param val
      */
     deepClone(val: any) {
-        if (this._app && val !== undefined) {
-            return (this._app.getPlugin("dataCopier") as DataCopier).deepClone(val);
-        }
-        return val;
+        return this.dataCopier?.deepClone(val);
     }
 
 
     encodeData(val: string): string {
-        if (!this._app) {
-            return val;
-        }
-        return (this._app.getPlugin("dataContract") as DataContract).encode(val);
+        return (this.dataContract as DataContract).encode(val);
     }
 
     decodeData(val: string): string {
-        if (!this._app) {
-            return val;
-        }
-        return (this._app.getPlugin("dataContract") as DataContract).decode(val);
+        return (this.dataContract as DataContract).decode(val);
     }
 
     /**
@@ -487,3 +528,4 @@ export class MemoryStorageCacheManager extends AbstractCacheManager {
         super(memoryStorage, new CacheManagerPropertyFactoryImpl());
     }
 }
+

@@ -1,11 +1,17 @@
-import { AppStore } from "../manager";
-import { AppPlugin, AppPluginLife, CacheManager, StorageProvider, Timer } from "../typings";
+import { AppStore, CacheConfig } from "../manager";
+import { AppPlugin, AppPluginLife, CacheManager, CacheManagerRegionBuilder, DataContract, StorageProvider, Timer } from "../typings";
 /**
  * 缓存管理器的属性工厂
  */
 export declare interface CacheManagerPropertyFactory {
     newCacheRegion(cache: AbstractCacheManager, key: string, val?: any): CacheRegion;
     newTimer(_this: AbstractCacheManager): Timer;
+}
+export declare class GeneralCacheRegionBuilder implements CacheManagerRegionBuilder {
+    prefix: string;
+    dataContract: DataContract;
+    constructor(cacheConfig: CacheConfig);
+    buildRegionName(regionName: string): string;
 }
 /**
  * 抽象的缓存管理器
@@ -15,7 +21,6 @@ export declare abstract class AbstractCacheManager implements CacheManager, AppP
     readonly _reginData: {
         [key: string]: CacheRegion;
     };
-    _app: AppStore | undefined;
     private _queue;
     /**
      * ttl 定时器
@@ -24,6 +29,9 @@ export declare abstract class AbstractCacheManager implements CacheManager, AppP
     private ttlTimer;
     private ttlEnable;
     private cacheManagerPropertyFactory;
+    private dataCopier;
+    private dataContract;
+    private regionBuilder;
     constructor(storageProvider: StorageProvider, cacheManagerPropertyFactory: CacheManagerPropertyFactory);
     install(app: AppStore): void;
     ready(app: AppStore): void;
@@ -49,6 +57,11 @@ export declare abstract class AbstractCacheManager implements CacheManager, AppP
      * @private
      */
     getRegion(reginName: string, defaultVal?: any): CacheRegion;
+    /**
+     * 构建真正的regionName
+     * @param reginName
+     */
+    buildRegionName(reginName: string): string;
     setValue(reginName: string, key: string, value: any): void;
     getValue(reginName: string, key: string, defaultVal?: any): any;
     setRegionData(reginName: string, val: any, ttl?: number): void;

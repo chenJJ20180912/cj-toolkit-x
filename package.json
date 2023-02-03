@@ -1,13 +1,13 @@
 {
   "name": "cj-toolkit-x",
-  "version": "0.0.14",
+  "version": "0.0.19",
   "description": "a general javascript toolkit!",
   "private": false,
   "main": "dist/index.min.js",
   "type": "commonjs",
   "typings": "dist/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \\\\\\\"Error: no test specified\\\\\\\" && exit 1"
   },
   "files": [
     "dist/*.js",
@@ -22,6 +22,7 @@
     "gulp-uglify-es": "^2.0.0",
     "rollup": "^2.0.6",
     "rollup-plugin-typescript2": "^0.26.0",
+    "ts-node": "^10.9.1",
     "typescript": "^3.8.3"
   },
   "author": "sssdal19995",

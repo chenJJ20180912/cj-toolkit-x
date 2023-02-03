@@ -11,13 +11,19 @@ export declare class ObjectUtils {
      */
     isArray(val: any): boolean;
     /**
+     * 对象是否为函数
+     * @param val
+     */
+    isFunction(val: any): boolean;
+    /**
      * 是否为对象
      * @param val
      */
     isObject(val: any): boolean;
     addObjType(obj: any, typeName: string): void;
+    getConstructorName(obj: any): string | undefined;
     getObjType(obj: any): string;
-    deepClone(data: any): any;
+    deepClone(data: any, map?: WeakMap<object, any>): any;
     /**
      * 判断对象为空
      * @param obj

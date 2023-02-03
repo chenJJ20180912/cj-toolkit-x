@@ -20,7 +20,7 @@ gulp.task("build", async function () {
             file: buildDir + '/index.js',
             format: 'umd', //iife
             extend: true,
-            name: 'index'
+            name: 'index',
         },
         plugins: [
             rollupTypescript(),

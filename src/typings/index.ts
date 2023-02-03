@@ -1,4 +1,4 @@
-import {AppStore} from "../manager";
+import {AppConfig, AppStore} from "../manager";
 
 
 export declare interface AppPluginLife {
@@ -7,23 +7,46 @@ export declare interface AppPluginLife {
      * 安装插件的时候调用
      * @param app
      */
-    install(app: AppStore): void;
+    install(app?: AppStore): void;
 
     /**
      * 上下文初始化完毕之后回调此函数
      * @param app
      */
-    ready(app: AppStore): void;
+    ready(app?: AppStore): void;
 
     /**
      * 卸载的时候触发
      * @param app
      */
-    remove(app: AppStore): void;
+    remove(app?: AppStore): void;
 
 }
 
-export declare    type AppPlugin = Object | AppPluginLife
+
+export declare interface AppRunHook {
+
+    /**
+     * 所有工作之前调用
+     * @param appConfig
+     * @param appStore
+     */
+    compiled?(appConfig: AppConfig, appStore: AppStore);
+
+    /**
+     * 准备好的换进之前调用
+     * @param appStore
+     */
+    beforeReady?(appStore: AppStore);
+
+    /**
+     * 准备好的换进之后调用
+     * @param appStore
+     */
+    afterReady?(appStore: AppStore);
+}
+
+export declare    type AppPlugin = object | AppPluginLife
 
 /**
  * 数据拷贝工具
@@ -156,11 +179,15 @@ export declare interface CacheManager {
     /**
      * 立即持久化数据 从缓存对象到存储对象
      */
-    sync(regionNames:Array<string>|string|undefined );
+    sync(regionNames: Array<string> | string | undefined);
 
     /**
      * 立即刷新缓存 从存储到缓存对象
      */
-    refresh(regionNames:Array<string>|string|undefined );
+    refresh(regionNames: Array<string> | string | undefined);
 
+}
+
+export declare interface CacheManagerRegionBuilder {
+    buildRegionName(regionName: string): string;
 }

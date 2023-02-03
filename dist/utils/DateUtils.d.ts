@@ -1,8 +1,8 @@
 export declare class DateUtils {
     /**格式为yyyy-MM-dd HH:mm:ss*/
-    date_formatter_long: string;
+    static date_formatter_long: string;
     /**格式为yyyy-MM-dd*/
-    date_formatter_short: string;
+    static date_formatter_short: string;
     /**
      * 获取时间
      * @param date
@@ -35,19 +35,19 @@ export declare class DateUtils {
      * @param num
      * @returns {Date}
      */
-    addDay(date: string | Date, num: number): Date | undefined;
+    addDay(date: string | Date, num: number): Date;
     /**
      * 月份加减
      * @param date
      * @param num
      */
-    addMonth(date: string | Date, num: number): Date | undefined;
+    addMonth(date: string | Date, num: number): Date;
     /**
      * 年份加减
      * @param date
      * @param num
      */
-    addYear(date: string | Date, num: number): Date | undefined;
+    addYear(date: string | Date, num: number): Date;
     /**
      * 获取日期是周几
      * @param date
@@ -90,6 +90,16 @@ export declare class DateUtils {
      * @param format 单位  year 年 month 月 day 日 hour 小时 minute 分钟
      */
     trunc(date: Date | string, format?: DateTruncUnit): Date;
+    /**
+     * 获取本月第一天
+     * @param date
+     */
+    getFirstDayOfMonth(date: Date | string): Date;
+    /**
+     * 获取本月最后一天
+     * @param date
+     */
+    getLastDayOfMonth(date: Date | string): Date;
 }
 declare type DateTruncUnit = "year" | "month" | "day" | "hour" | "minute";
 declare const _default: DateUtils;

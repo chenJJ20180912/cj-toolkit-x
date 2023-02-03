@@ -1,6 +1,6 @@
 import {Timer} from "../typings";
 
-export class GeneralTimer implements Timer {
+export  class GeneralTimer implements Timer {
 
     /**
      * 定时器id
@@ -70,7 +70,7 @@ export class GeneralTimer implements Timer {
 }
 
 
-export class GeneralTimerJob {
+class GeneralTimerJob {
     targetFun: Function;
     that: any;
 

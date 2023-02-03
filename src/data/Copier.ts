@@ -1,11 +1,12 @@
 import Asserts from "../utils/Asserts";
-import objectUtils, {ObjectUtils} from "../utils/ObjectUtils";
-import {AppPluginLife, DataCopier} from "../typings";
-import {AppStore} from "../manager";
+import {ObjectUtils} from "../utils/ObjectUtils";
+import {DataCopier} from "../typings";
+import {AutoWried} from "../annotations";
 
-export class GeneralDataCopier implements DataCopier, AppPluginLife {
+export class GeneralDataCopier implements DataCopier {
 
-    private _objectUtils: ObjectUtils = objectUtils;
+    @AutoWried()
+    private objectUtils: ObjectUtils | undefined;
 
     /**
      * 深拷贝
@@ -13,7 +14,7 @@ export class GeneralDataCopier implements DataCopier, AppPluginLife {
      */
     deepClone<T>(val: T): T {
         Asserts.isNull(val, "数据不可为空!");
-        return this._objectUtils.deepClone(val);
+        return this.objectUtils?.deepClone(val);
     }
 
     /**
@@ -25,13 +26,4 @@ export class GeneralDataCopier implements DataCopier, AppPluginLife {
         return Object.assign({}, val);
     }
 
-    install(app: AppStore): void {
-    }
-
-    ready(app: AppStore): void {
-        this._objectUtils = app.getPlugin("objectUtils") as ObjectUtils;
-    }
-
-    remove(app: AppStore): void {
-    }
 }

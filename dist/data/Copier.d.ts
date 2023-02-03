@@ -1,7 +1,6 @@
-import { AppPluginLife, DataCopier } from "../typings";
-import { AppStore } from "../manager";
-export declare class GeneralDataCopier implements DataCopier, AppPluginLife {
-    private _objectUtils;
+import { DataCopier } from "../typings";
+export declare class GeneralDataCopier implements DataCopier {
+    private objectUtils;
     /**
      * 深拷贝
      * @param val
@@ -12,7 +11,4 @@ export declare class GeneralDataCopier implements DataCopier, AppPluginLife {
      * @param val
      */
     simpleClone<T>(val: T): T;
-    install(app: AppStore): void;
-    ready(app: AppStore): void;
-    remove(app: AppStore): void;
 }

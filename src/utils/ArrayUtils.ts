@@ -143,7 +143,9 @@ export class ArrayUtils {
                 }
                 let parent = dataMap[parentId];
                 if (!parent) {
-                    dataMap[parentId] = parent = {};
+                    dataMap[parentId] = parent = {
+                        $temp: true
+                    };
                     parent[childKey] = [];
                     parent[idKey] = parentId;
                 }
@@ -158,7 +160,12 @@ export class ArrayUtils {
         const root: any[] = [];
         parentIds.forEach(pid => {
             if (noParentDataIds.indexOf(pid) === -1) {
-                root.push(dataMap[pid]);
+                const node = dataMap[pid];
+                if (node.$temp) {
+                    root.push(...node[childKey]);
+                } else {
+                    root.push(node);
+                }
             }
         });
         root.push(...noParentData);

@@ -28,9 +28,10 @@ export declare class GeneralTimer implements Timer {
     stop(): void;
     setInterval(interval?: number): void;
 }
-export declare class GeneralTimerJob {
+declare class GeneralTimerJob {
     targetFun: Function;
     that: any;
     constructor(targetFun: Function, that: any);
     invoke(): void;
 }
+export {};

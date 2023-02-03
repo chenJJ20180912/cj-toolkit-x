@@ -61,6 +61,11 @@ export declare class ArrayUtils {
     toMap(data: any[] | undefined, keyBuilder: KeyBuilder | string, valueBuilder: ValueBuilder | string): {
         [key: string]: any;
     };
+    /**
+     * 如果当前对象不是一个数组 那么将它包装为一个数组
+     * @param obj
+     */
+    wrappedToArray(obj: any): Array<any>;
 }
 declare const _default: ArrayUtils;
 export default _default;

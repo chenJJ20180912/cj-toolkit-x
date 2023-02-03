@@ -32,6 +32,14 @@ export class ObjectUtils {
     }
 
     /**
+     * 对象是否为函数
+     * @param val
+     */
+    isFunction(val: any): boolean {
+        return this.getObjType(val) === "function";
+    }
+
+    /**
      * 是否为对象
      * @param val
      */
@@ -44,11 +52,23 @@ export class ObjectUtils {
         this.typeMapping[toString.call(obj)] = typeName;
     }
 
-    getObjType(obj: any): string {
-        let toString = Object.prototype.toString;
-        if (obj instanceof Element) {
-            return "element";
+    getConstructorName(obj: any): string | undefined {
+        const constructorName = obj?.constructor?.name;
+        if (constructorName) {
+            // 如果有构造函数 则构造函数名字就是当前对象的类型
+            return constructorName;
         }
+    }
+
+    getObjType(obj: any): string {
+        const constructorName = this.getConstructorName(obj);
+        if (constructorName) {
+            return constructorName.toLowerCase();
+        }
+        let toString = Object.prototype.toString;
+        // if (Element && obj instanceof Element) {
+        //     return "element";
+        // }
         const typeString = toString.call(obj);
         const type = this.typeMapping[typeString];
         if (type) {
@@ -60,30 +80,38 @@ export class ObjectUtils {
         return typeString;
     }
 
-    deepClone(data: any): any {
+    deepClone(data: any, map = new WeakMap()): any {
         let type = this.getObjType(data);
         if (Array.isArray(data)) {
-            let obj: any[] = [];
-            for (let i = 0, len = data.length; i < len; i++) {
-                data[i] = (() => {
-                    if (data[i] === 0) {
+            let obj: any[] = map.get(data);
+            if (!obj) {
+                obj = [];
+                map.set(data, obj);
+                for (let i = 0, len = data.length; i < len; i++) {
+                    data[i] = (() => {
+                        if (data[i] === 0) {
+                            return data[i];
+                        }
                         return data[i];
+                    })();
+                    if (data[i]) {
+                        delete data[i].$parent;
                     }
-                    return data[i];
-                })();
-                if (data[i]) {
-                    delete data[i].$parent;
+                    obj.push(this.deepClone(data[i], map));
                 }
-                obj.push(this.deepClone(data[i]));
             }
             return obj;
         } else if (type === "object") {
-            let obj: { [key: string]: string } = {};
-            for (let key in data) {
-                if (data) {
-                    delete data.$parent;
+            let obj: { [key: string]: string } = map.get(data);
+            if (!obj) {
+                obj = {};
+                map.set(data, obj);
+                for (let key in data) {
+                    if (data) {
+                        delete data.$parent;
+                    }
+                    obj[key] = this.deepClone(data[key], map);
                 }
-                obj[key] = this.deepClone(data[key]);
             }
             return obj;
         }
@@ -105,18 +133,15 @@ export class ObjectUtils {
         if (type === "array" && !obj.length) {
             return true;
         }
-        if (obj.isEmpty && obj.isEmpty()) {
-            return true;
-        }
-        return false;
+        return !!(obj.isEmpty && obj.isEmpty());
     }
 
     /**
      * 判断对象为非空
      * @param obj
      */
-    isNotEmpty(obj:any){
-        return !this.isEmpty(obj)
+    isNotEmpty(obj: any) {
+        return !this.isEmpty(obj);
     }
 }
 

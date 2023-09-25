@@ -69,28 +69,28 @@ export class DateUtils {
             let year = "1970", month = "01", day = "01", hour = "00", minute = "00", second = "00";
             let idx = format.indexOf("yyyy");
             if (idx > -1) {
-                year = str.substring(idx, idx + 4);
+                year = str.substring(idx, idx + 4) || year;
             }
             idx = format.indexOf("MM");
             if (idx > -1) {
-                month = str.substring(idx, idx + 2);
+                month = str.substring(idx, idx + 2) || month;
             }
             idx = format.indexOf("dd");
             if (idx > -1) {
-                day = str.substring(idx, idx + 2);
+                day = str.substring(idx, idx + 2) || day;
             }
             // 不考虑12小时 即hh
             idx = format.indexOf("HH");
             if (idx > -1) {
-                hour = str.substring(idx, idx + 2);
+                hour = str.substring(idx, idx + 2) || hour;
             }
             idx = format.indexOf("mm");
             if (idx > -1) {
-                minute = str.substring(idx, idx + 2);
+                minute = str.substring(idx, idx + 2) || minute;
             }
             idx = format.indexOf("ss");
             if (idx > -1) {
-                second = str.substring(idx, idx + 2);
+                second = str.substring(idx, idx + 2) || second;
             }
             // 重新组装字符串
             str = year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + second;
